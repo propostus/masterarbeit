@@ -22,6 +22,7 @@ dist/
 # Audio-Dateien
 *.wav
 *.mp3
+*.flac
 # audio_files/
 
 # Ergebnis-Dateien
