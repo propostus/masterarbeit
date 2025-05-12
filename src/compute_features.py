@@ -29,8 +29,8 @@ from src.features.vad import calculate_vad
 from src.features.zcr import calculate_zcr
 
 # Parameter
-audio_dir = "../audio_files/common_voice_test/"
-results_path = "../results/features.csv"
+audio_dir = "audio_files/common_voice_test/"
+results_path = "results/features.csv"
 sample_rate = 16000
 
 # DNSMOS-Modell initialisieren
@@ -116,4 +116,4 @@ if results:
     else:
         df.to_csv(results_path, index=False)
 
-print(f"✅ Alle Dateien verarbeitet ({processed_files}). Ergebnisse gespeichert in: {results_path}")
+print(f"Alle Dateien verarbeitet ({processed_files}). Ergebnisse gespeichert in: {results_path}")
