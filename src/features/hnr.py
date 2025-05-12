@@ -2,7 +2,7 @@ import numpy as np
 import librosa
 from scipy.signal import find_peaks
 
-def calculate_hnr_praat(audio_signal, sample_rate=16000, frame_length=2048, hop_length=512):
+def calculate_hnr(audio_signal, sample_rate=16000, frame_length=2048, hop_length=512):
     """
     Berechnet das Harmonics-to-Noise Ratio (HNR) eines Audiosignals nach der Methode aus Praat (Hoole, Sprachproduktion 1).
 

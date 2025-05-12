@@ -1,29 +1,32 @@
-import librosa
 import numpy as np
 
-def preprocess_audio(audio_path, sample_rate=16000):
+def calculate_loudness_range(audio_signal, lower_percentile=10, upper_percentile=95):
     """
-    Vorverarbeitung einer Audiodatei: Resampling und Normalisierung.
+    Berechnet die Loudness Range (LRA) eines Audiosignals basierend auf EBU TECH 3342.
 
     Quelle:
-    Loudness Range aus EBU TECH 3342
-    
+        EBU TECH 3342: "LOUDNESS RANGE: A MEASURE TO SUPPLEMENT EBU R 128 LOUDNESS NORMALIZATION"
+        Geneva, November 2023.
+
     Args:
-        audio_path (str): Pfad zur Audiodatei.
-        sample_rate (int): Ziel-Sampling-Rate (Standard: 16000).
+        audio_signal (np.array): Das normalisierte Audio-Signal (1D-Array).
+        lower_percentile (int): Unteres Perzentil (Standard: 10).
+        upper_percentile (int): Oberes Perzentil (Standard: 95).
 
     Returns:
-        np.array: Das vorverarbeitete Audio-Signal.
+        float: Loudness Range (LRA) in Dezibel.
     """
-    # Audiodatei laden und resamplen
-    audio_signal, _ = librosa.load(audio_path, sr=sample_rate)
-
-    # Zu Mono konvertieren (falls mehrkanalig)
-    audio_signal = librosa.to_mono(audio_signal)
-
-    # Normalisieren
-    max_val = np.max(np.abs(audio_signal))
-    if max_val > 0:
-        audio_signal = audio_signal / max_val
-
-    return audio_signal
+    # Absolutwerte des Signals für die Perzentilberechnung
+    abs_signal = np.abs(audio_signal)
+    
+    # Perzentile berechnen
+    p_upper = np.percentile(abs_signal, upper_percentile)
+    p_lower = np.percentile(abs_signal, lower_percentile)
+    
+    # LRA berechnen
+    if p_lower > 0:  # Verhindert Division durch Null
+        lra = 20 * np.log10(p_upper / p_lower)
+    else:
+        lra = 0.0  # Falls p_lower = 0, setzen wir die LRA auf 0 dB
+    
+    return lra
