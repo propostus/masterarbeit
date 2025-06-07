@@ -47,11 +47,15 @@ for root, _, files in os.walk(audio_dir):
 
                 row = {"filename": filename, "filepath": file_path}
 
+                # Dauer der analysierten Audiofiles
+                duration_sec = len(audio_signal) / sample_rate
+                row["duration_sec"] = round(duration_sec, 2)
+
                 def time_it(name, func, *args, **kwargs):
                     start = time.perf_counter()
                     func(*args, **kwargs)
                     duration = time.perf_counter() - start
-                    row[f"time_{name}"] = duration
+                    row[f"time_{name}"] = round(duration, 4)
 
                 # Zeitmessung je Feature
                 time_it("rms", calculate_rms, audio_signal)
@@ -76,7 +80,7 @@ for root, _, files in os.walk(audio_dir):
                 time_it("formant_bandwidths", calculate_formant_bandwidths, audio_signal, sample_rate)
                 time_it("chroma", calculate_chroma_features, audio_signal, sample_rate)
                 time_it("mfcc_spectrum", calculate_mfcc_spectrum, audio_signal, sample_rate)
-                time_it("mfcc_statistics", calculate_mfcc_statistics, calculate_mfcc_spectrum(audio_signal, sample_rate))
+                time_it("mfcc_statistics", calculate_mfcc_statistics,    calculate_mfcc_spectrum(audio_signal, sample_rate))
                 time_it("dnsmos", dnsmos_model.calculate_dnsmos, audio_signal)
 
                 timing_results.append(row)
