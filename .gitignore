@@ -37,3 +37,4 @@ dist/
 # IDE-spezifisch
 .vscode/
 .idea/
+audio_files/cv-corpus-21.0-2025-03-14/en/*.tsv
