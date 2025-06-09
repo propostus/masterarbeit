@@ -4,8 +4,9 @@ import shutil
 import librosa
 
 # === PARAMETER ===
-source_dir = "audio_files/cv-corpus-21.0-2025-03-14/en/clips"           # Ordner mit allen MP3-Dateien
-target_dir = "audio_files/common_voice_subset_10h/"                     # Zielordner für das Subset
+# Relativer Pfad, damit create-subset aus src-Ordner ausgeführt werden kann
+source_dir = "../audio_files/cv-corpus-21.0-2025-03-14/en/clips"           # Ordner mit allen MP3-Dateien
+target_dir = "../audio_files/common_voice_subset_10h/"                     # Zielordner für das Subset
 sample_rate = 16000
 target_duration_hours = 10
 audio_extension = ".mp3"
@@ -21,7 +22,7 @@ for root, _, files in os.walk(source_dir):
             full_path = os.path.join(root, file)
             all_files.append(full_path)
 
-print(f"📂 {len(all_files)} Audiodateien gefunden.")
+print(f"- {len(all_files)} Audiodateien gefunden.")
 
 # === Zufällig mischen ===
 random.seed(42)
@@ -32,7 +33,7 @@ selected_files = []
 total_duration_sec = 0
 max_duration_sec = target_duration_hours * 3600
 
-print("⏳ Wähle Dateien bis ca. 10 Stunden...")
+print("- Wähle Dateien...")
 
 for path in all_files:
     try:
@@ -42,10 +43,10 @@ for path in all_files:
         total_duration_sec += duration
         selected_files.append(path)
     except Exception as e:
-        print(f"❌ Fehler bei Datei {path}: {e}")
+        print(f"x Fehler bei Datei {path}: {e}")
         continue
 
-print(f"✅ {len(selected_files)} Dateien gewählt ({round(total_duration_sec / 3600, 2)} h Gesamtzeit).")
+print(f"- {len(selected_files)} Dateien gewählt ({round(total_duration_sec / 3600, 2)} h Gesamtzeit).")
 
 # === Kopieren in Zielordner ===
 for src_path in selected_files:
@@ -53,4 +54,4 @@ for src_path in selected_files:
     target_path = os.path.join(target_dir, filename)
     shutil.copy2(src_path, target_path)
 
-print(f"📁 Dateien kopiert nach: {target_dir}")
+print(f"- Dateien kopiert nach: {target_dir}")

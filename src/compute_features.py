@@ -7,9 +7,9 @@ from src.preprocessing import preprocess_audio
 from src.features.chroma_features import calculate_chroma_features
 from src.features.clipping_ratio import calculate_clipping_ratio
 from src.features.crest_factor import calculate_crest_factor
-from src.features.dnsmos import DNSMOS
-from src.features.formant_bandwith import calculate_formant_bandwidths
-from src.features.formant_freq import calculate_formants
+# from src.features.dnsmos import DNSMOS
+# from src.features.formant_bandwith import calculate_formant_bandwidths
+# from src.features.formant_freq import calculate_formants
 from src.features.fundamental_freq import calculate_f0
 from src.features.hnr import calculate_hnr
 from src.features.log_energy import calculate_log_energy
@@ -29,16 +29,19 @@ from src.features.vad import calculate_vad
 from src.features.zcr import calculate_zcr
 
 # Parameter
-audio_dir = "audio_files/common_voice_test/"
-results_path = "results/features.csv"
+audio_dir = "audio_files/common_voice_subset_10h/"
+results_path = "results/subset_10h/features_250609_2.csv"
+temp_path = "results/subset_10h/_tmp_features_part.csv"
 sample_rate = 16000
+save_interval = 100
 
-# DNSMOS-Modell initialisieren
-dnsmos_model = DNSMOS(sample_rate=sample_rate, personalized=False, device="cpu")
-
+# Vorbereitung
 results = []
 processed_files = 0
-save_interval = 500  # Zwischenspeicherung alle 500 Dateien
+
+# Alte temporäre Datei ggf. löschen
+if os.path.exists(temp_path):
+    os.remove(temp_path)
 
 for root, _, files in os.walk(audio_dir):
     for filename in files:
@@ -74,26 +77,26 @@ for root, _, files in os.walk(audio_dir):
                 }
 
                 # Mehrdimensionale Features
-                formants = calculate_formants(audio_signal, sample_rate)
-                formant_bandwidths = calculate_formant_bandwidths(audio_signal, sample_rate)
+                # formants = calculate_formants(audio_signal, sample_rate)
+                # formant_bandwidths = calculate_formant_bandwidths(audio_signal, sample_rate)
                 chroma = calculate_chroma_features(audio_signal, sample_rate)
                 mfcc_spectrum = calculate_mfcc_spectrum(audio_signal, sample_rate)
                 mfcc_stats = calculate_mfcc_statistics(mfcc_spectrum)
-                dnsmos_scores = dnsmos_model.calculate_dnsmos(audio_signal)
+                # dnsmos_scores = dnsmos_model.calculate_dnsmos(audio_signal)
 
                 # Feature-Vektor erweitern
                 features.update({
-                    **{f"formant_{i+1}": val for i, val in enumerate(formants)},
-                    **{f"formant_bw_{i+1}": val for i, val in enumerate(formant_bandwidths)},
+                    # **{f"formant_{i+1}": val for i, val in enumerate(formants)},
+                    # **{f"formant_bw_{i+1}": val for i, val in enumerate(formant_bandwidths)},
                     **{f"chroma_{i+1}": val for i, val in enumerate(chroma)},
                     **{f"mfcc_stat_{i+1}": stat for i, stat in enumerate(mfcc_stats)},
-                    **dnsmos_scores
+                    # **dnsmos_scores
                 })
 
                 results.append(features)
 
             except Exception as e:
-                print(f"❌ Fehler bei Datei {file_path}: {e}")
+                print(f"x Fehler bei Datei {file_path}: {e}")
                 continue
 
             processed_files += 1
@@ -101,19 +104,18 @@ for root, _, files in os.walk(audio_dir):
             # Zwischenspeichern
             if processed_files % save_interval == 0:
                 df = pd.DataFrame(results)
-                if os.path.exists(results_path):
-                    df.to_csv(results_path, mode='a', header=False, index=False)
-                else:
-                    df.to_csv(results_path, index=False)
+                df.to_csv(temp_path, mode='a', header=not os.path.exists(temp_path), index=False)
                 results.clear()
-                print(f"💾 {processed_files} Dateien verarbeitet und gespeichert...")
+                print(f"- {processed_files} Dateien verarbeitet und zwischengespeichert...")
 
-# Restliche Daten speichern
+# Letzte Ergebnisse sichern
 if results:
     df = pd.DataFrame(results)
-    if os.path.exists(results_path):
-        df.to_csv(results_path, mode='a', header=False, index=False)
-    else:
-        df.to_csv(results_path, index=False)
+    df.to_csv(temp_path, mode='a', header=not os.path.exists(temp_path), index=False)
 
-print(f"Alle Dateien verarbeitet ({processed_files}). Ergebnisse gespeichert in: {results_path}")
+# Final speichern & temporäre Datei löschen
+df_all = pd.read_csv(temp_path)
+df_all.to_csv(results_path, index=False)
+os.remove(temp_path)
+
+print(f"- Alle Dateien verarbeitet ({processed_files}). Ergebnisse gespeichert in: {results_path}")
