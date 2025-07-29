@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from functools import partial
 from concurrent.futures import ProcessPoolExecutor
+from tqdm import tqdm  # Für Fortschrittsanzeige
 
 from src.preprocessing import preprocess_audio
 
@@ -103,7 +104,10 @@ def main():
     results = []
 
     with ProcessPoolExecutor() as executor:
-        for i, result in enumerate(executor.map(partial(process_file, sample_rate=sample_rate), file_list), 1):
+        for i, result in enumerate(
+            tqdm(executor.map(partial(process_file, sample_rate=sample_rate), file_list),
+                 total=len(file_list)), 1):
+
             if result is not None:
                 results.append(result)
 

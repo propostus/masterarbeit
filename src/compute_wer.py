@@ -6,11 +6,11 @@ from jiwer import wer, Compose, ToLowerCase, RemovePunctuation, RemoveMultipleSp
 from tqdm import tqdm
 
 # Parameter
-model_size = "large"  # z. B. tiny, base, small, medium, large
+model_size = "tiny"  # z. B. tiny, base, small, medium, large
 device = "cpu"
 tsv_path = "audio_files/cv-corpus-21.0-2025-03-14/en/validated.tsv"
-audio_dir = "audio_files/common_voice_subset_10h/"
-output_path = "results/subset_10h/wer_test_10_large.csv"
+audio_dir = "audio_files/common_voice_subset_50h/"
+output_path = "results/subset_50h/wer_test_50_tiny.csv"
 
 # Whisper-Modell laden
 model = whisper.load_model(model_size, device=device)
