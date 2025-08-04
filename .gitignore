@@ -24,6 +24,7 @@ dist/
 *.mp3
 *.flac
 # audio_files/
+*.tsv
 
 # Ergebnis-Dateien
 *.csv
