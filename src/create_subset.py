@@ -5,10 +5,10 @@ import librosa
 
 # === PARAMETER ===
 # Relativer Pfad, damit create-subset aus src-Ordner ausgeführt werden kann
-source_dir = "../audio_files/cv-corpus-21.0-2025-03-14/en/clips"           # Ordner mit allen MP3-Dateien
-target_dir = "../audio_files/common_voice_subset_100h/"                     # Zielordner für das Subset
+source_dir = "audio_files/common_voice/raw/cv-corpus-22.0-en-delta-2025-06-20/en/clips/"           # Ordner mit allen MP3-Dateien
+target_dir = "audio_files/common_voice/10h/cv_10h_en_delta/"                     # Zielordner für das Subset
 sample_rate = 16000
-target_duration_hours = 100
+target_duration_hours = 10
 audio_extension = ".mp3"
 
 # === VORBEREITUNG ===
