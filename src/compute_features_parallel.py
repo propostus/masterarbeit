@@ -32,9 +32,9 @@ from src.features.vad import calculate_vad
 from src.features.zcr import calculate_zcr
 
 # Parameter
-audio_dir = "audio_files/common_voice_subset_50h/"
-results_path = "results/subset_50h/features_250728.csv"
-temp_path = "results/subset_50h/_tmp_features_parallel.csv"
+audio_dir = "audio_files/common_voice/raw/cv-corpus-de-combined-20-21-delta/"
+results_path = "results/de-20-21-delta/features-20-21-delta-250907.csv"
+temp_path = "results/de-20-21-delta/_tmp-features.csv"
 sample_rate = 16000
 save_interval = 100
 

@@ -11,9 +11,9 @@ from src.preprocessing import preprocess_audio
 from src.features.chroma_features import calculate_chroma_features
 from src.features.clipping_ratio import calculate_clipping_ratio
 from src.features.crest_factor import calculate_crest_factor
-# from src.features.dnsmos import DNSMOS
-# from src.features.formant_bandwith import calculate_formant_bandwidths
-# from src.features.formant_freq import calculate_formants
+# from src.features.dnsmos import DNSMOS #----- NO
+# from src.features.formant_bandwith import calculate_formant_bandwidths ----- NO
+# from src.features.formant_freq import calculate_formants ----- NO
 from src.features.fundamental_freq import calculate_f0
 from src.features.hnr import calculate_hnr
 from src.features.log_energy import calculate_log_energy
@@ -33,9 +33,9 @@ from src.features.vad import calculate_vad
 from src.features.zcr import calculate_zcr
 
 # Parameter
-audio_dir = "audio_files/common_voice_subset_50h/"
-results_path = "results/subset_50h/features_250728.csv"
-temp_path = "results/subset_50h/_tmp_features_parallel.csv"
+audio_dir = "audio_files/common_voice/raw/cv-corpus-de-combined-20-21-delta/"
+results_path = "results/de-20-21-delta/features-20-21-delta-250907.csv"
+temp_path = "results/de-20-21-delta/_tmp-features.csv"
 sample_rate = 16000
 save_interval = 100
 
@@ -71,27 +71,29 @@ def process_file(file_path, sample_rate=16000):
         # Mehrdimensionale Features
         # formants = calculate_formants(audio_signal, sample_rate)
         # formant_bandwidths = calculate_formant_bandwidths(audio_signal, sample_rate)
-        chroma = calculate_chroma_features(audio_signal, sample_rate)
+#        chroma = calculate_chroma_features(audio_signal, sample_rate)
         mfcc_spectrum = calculate_mfcc_spectrum(audio_signal, sample_rate)
         mfcc_stats = calculate_mfcc_statistics(mfcc_spectrum)
-        # dnsmos_scores = dnsmos_model.calculate_dnsmos(audio_signal)
+#        dnsmos_scores = dnsmos_model.calculate_dnsmos(audio_signal)
 
         features.update({
             # **{f"formant_{i+1}": val for i, val in enumerate(formants)},
             # **{f"formant_bw_{i+1}": val for i, val in enumerate(formant_bandwidths)},
-            **{f"chroma_{i+1}": val for i, val in enumerate(chroma)},
+#            **{f"chroma_{i+1}": val for i, val in enumerate(chroma)},
             **{f"mfcc_stat_{i+1}": stat for i, stat in enumerate(mfcc_stats)},
-            # **dnsmos_scores
+#            **dnsmos_scores
         })
 
         return features
 
     except Exception as e:
         print(f"x Fehler bei Datei {file_path}: {e}")
+        traceback.print_exc()
         return None
 
 
 def main():
+    
     if os.path.exists(temp_path):
         os.remove(temp_path)
 
@@ -99,7 +101,7 @@ def main():
         os.path.join(root, f)
         for root, _, files in os.walk(audio_dir)
         for f in files if f.endswith(".mp3")
-    ]
+    ] 
 
     results = []
 
