@@ -1,37 +1,36 @@
+# src/features/phoneme_entropy.py
 import numpy as np
 import librosa
 
-def calculate_phoneme_entropy(audio_signal, sample_rate=16000, frame_length=2048, hop_length=512):
+def compute(signal: np.ndarray, sr: int, frame_length: int = 2048, hop_length: int = 512) -> dict:
     """
-    Berechnet die Phoneme Entropy eines Audiosignals basierend auf der spektralen Energieverteilung.
-
-    Quelle:
-        Jelinek, F. (1997). Statistical Methods for Speech Recognition.
-        MIT Press.
-
+    Berechnet die spektrale Entropie als Proxy für Phonem-Variabilität ("Phoneme Entropy").
+    
     Args:
-        audio_signal (np.array): Das normalisierte Audio-Signal (1D-Array).
-        sample_rate (int): Sampling-Rate des Signals (Standard: 16000 Hz).
-        frame_length (int): Länge eines FFT-Frames in Samples (Standard: 2048).
-        hop_length (int): Schrittweite zwischen Frames in Samples (Standard: 512).
-
+        signal (np.ndarray): 1D-Audiosignal (float, mono).
+        sr (int): Samplingrate in Hz.
+        frame_length (int): FFT-Länge (Default: 2048).
+        hop_length (int): Schrittweite zwischen Frames (Default: 512).
+    
     Returns:
-        float: Phoneme Entropy-Wert für das gesamte Signal.
+        dict: {"phoneme_entropy_mean": float, "phoneme_entropy_std": float}
     """
-    # Falls das Signal zu leise oder konstant ist, Entropie auf 0 setzen
-    if np.all(audio_signal == audio_signal[0]):
-        return 0.0
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {"phoneme_entropy_mean": np.nan, "phoneme_entropy_std": np.nan}
 
-    # Berechnung des Leistungsverhältnisses (Power Spectrogram)
-    spectrogram = np.abs(librosa.stft(audio_signal, n_fft=frame_length, hop_length=hop_length)) ** 2
+    # Power-Spektrogramm
+    spectrogram = np.abs(librosa.stft(signal, n_fft=frame_length, hop_length=hop_length)) ** 2
 
-    # Normalisierung über die Frequenzbänder (damit die Summe 1 ergibt)
+    if np.sum(spectrogram) == 0:
+        return {"phoneme_entropy_mean": np.nan, "phoneme_entropy_std": np.nan}
+
+    # Normierung pro Frame → Verteilung über Frequenz
     prob_distribution = spectrogram / np.sum(spectrogram, axis=0, keepdims=True)
 
-    # Berechnung der Entropie pro Frame (log2, um Bits als Einheit zu haben)
+    # Shannon-Entropie pro Frame (log2)
     entropy_per_frame = -np.sum(prob_distribution * np.log2(prob_distribution + 1e-10), axis=0)
 
-    # Mittelwert über alle Frames
-    entropy_value = np.mean(entropy_per_frame)
-
-    return entropy_value
+    return {
+        "phoneme_entropy_mean": float(np.mean(entropy_per_frame)),
+        "phoneme_entropy_std":  float(np.std(entropy_per_frame))
+    }

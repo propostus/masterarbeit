@@ -1,23 +1,30 @@
-import librosa
+# src/features/spectral_contrast.py
 import numpy as np
+import librosa
 
-def calculate_spectral_contrast(audio_signal, sample_rate=16000, n_bands=6):
+def compute(signal: np.ndarray, sr: int, n_bands: int = 6) -> dict:
     """
     Berechnet den Spectral Contrast eines Audiosignals.
-
-    Quelle:
-        - Librosa: spectral_contrast
-        - https://librosa.org/doc/main/generated/librosa.feature.spectral_contrast.html
-
+    
     Args:
-        audio_signal (np.array): Vorverarbeitetes Audio-Signal.
-        sample_rate (int): Sampling-Rate des Audiosignals.
-        n_bands (int): Anzahl der Frequenzbänder für die Kontrastanalyse.
-
+        signal (np.ndarray): 1D-Audiosignal (float, mono).
+        sr (int): Samplingrate in Hz.
+        n_bands (int): Anzahl der Frequenzbänder für die Kontrastanalyse (Default: 6).
+    
     Returns:
-        np.array: Mittelwerte der Spektral-Kontraste über die Bänder.
+        dict: z. B. {"contrast_band0_mean": ..., "contrast_band0_std": ..., ...}
     """
-    spectral_contrast = librosa.feature.spectral_contrast(y=audio_signal, sr=sample_rate, n_bands=n_bands)
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {f"contrast_band{i}_mean": np.nan for i in range(n_bands+1)} | \
+               {f"contrast_band{i}_std": np.nan for i in range(n_bands+1)}
 
-    # Mittelwert über alle Frames berechnen
-    return np.mean(spectral_contrast, axis=1)
+    # Spektraler Kontrast: Shape (n_bands+1, n_frames)
+    contrast = librosa.feature.spectral_contrast(y=signal, sr=sr, n_bands=n_bands)
+
+    features = {}
+    for i in range(contrast.shape[0]):
+        band_vals = contrast[i, :]
+        features[f"contrast_band{i}_mean"] = float(np.mean(band_vals))
+        features[f"contrast_band{i}_std"] = float(np.std(band_vals))
+
+    return features

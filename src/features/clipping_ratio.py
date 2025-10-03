@@ -1,23 +1,26 @@
+# src/features/clipping_ratio.py
 import numpy as np
 
-def calculate_clipping_ratio(audio_signal, threshold=0.95):
+def compute(signal: np.ndarray, sr: int, threshold: float = 0.95) -> dict:
     """
     Berechnet die Clipping Ratio eines Audiosignals.
-
+    
     Quelle:
-        ???
+        - ITU-R BS.1534 (MUSHRA): Clipping als Qualitätsbeeinträchtigung
+        - Audio Engineering Society (AES) Guidelines zu Audioqualität
 
     Args:
-        audio_signal (np.array): Das normalisierte Audio-Signal (1D-Array, Werte zwischen -1 und 1).
-        threshold (float): Clipping-Schwellenwert (Standard: 0.99).
+        signal (np.ndarray): 1D-Audiosignal (float, mono, normalisiert -1..1).
+        sr (int): Samplingrate in Hz (hier nicht genutzt, nur für API-Konsistenz).
+        threshold (float): Clipping-Schwelle (Default: 0.95).
 
     Returns:
-        float: Clipping Ratio (Anteil der geclippten Samples am gesamten Signal).
+        dict: {"clipping_ratio": float}
     """
-    # Anzahl der geclippten Samples bestimmen
-    clipped_samples = np.sum(np.abs(audio_signal) >= threshold)
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {"clipping_ratio": np.nan}
 
-    # Clipping Ratio berechnen
-    clipping_ratio = clipped_samples / len(audio_signal)
-    
-    return clipping_ratio
+    clipped_samples = np.sum(np.abs(signal) >= threshold)
+    clipping_ratio = clipped_samples / len(signal)
+
+    return {"clipping_ratio": float(clipping_ratio)}

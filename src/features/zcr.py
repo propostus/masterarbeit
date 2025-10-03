@@ -1,30 +1,38 @@
+# src/features/zcr.py
 import numpy as np
 
-def calculate_zcr(audio_signal, frame_size=1024):
+def compute(signal: np.ndarray, sr: int, frame_size: int = 1024, hop_length: int = 512) -> dict:
     """
     Berechnet die Zero Crossing Rate (ZCR) eines Audiosignals.
-
-    Quelle:
-        Tom Bäckström et al., "Introduction to Speech Processing", 2nd Edition, 2022.
-        DOI: 10.5281/zenodo.6821775
-        URL: https://speechprocessingbook.aalto.fi/Representations/Zero-crossing_rate.html
-
+    
     Args:
-        audio_signal (np.array): Das Audio-Signal (1D-Array).
-        frame_size (int): Die Anzahl der Samples pro Frame.
-
+        signal (np.ndarray): 1D-Audiosignal (float, mono).
+        sr (int): Samplingrate in Hz (hier nicht zwingend benötigt).
+        frame_size (int): Fenstergröße in Samples (Default: 1024).
+        hop_length (int): Schrittweite in Samples (Default: 512).
+    
     Returns:
-        float: Durchschnittliche Zero Crossing Rate des Signals.
+        dict: {"zcr_mean": float, "zcr_std": float}
     """
-    # Anzahl der Frames
-    num_frames = len(audio_signal) // frame_size
-    frames = audio_signal[:num_frames * frame_size].reshape((num_frames, frame_size))
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {"zcr_mean": np.nan, "zcr_std": np.nan}
 
-    # ZCR pro Frame berechnen
+    # Padding am Ende, damit auch letztes Fenster reinpasst
+    num_frames = 1 + (len(signal) - frame_size) // hop_length if len(signal) >= frame_size else 0
     zcr_per_frame = []
-    for frame in frames:
+
+    for i in range(num_frames):
+        start = i * hop_length
+        end = start + frame_size
+        frame = signal[start:end]
+        # Zero crossings: Vorzeichenwechsel zählen
         zcr = np.sum(np.abs(np.diff(np.sign(frame)))) / (2 * len(frame))
         zcr_per_frame.append(zcr)
 
-    # Durchschnittliche ZCR
-    return np.mean(zcr_per_frame)
+    if len(zcr_per_frame) == 0:
+        return {"zcr_mean": np.nan, "zcr_std": np.nan}
+
+    return {
+        "zcr_mean": float(np.mean(zcr_per_frame)),
+        "zcr_std":  float(np.std(zcr_per_frame))
+    }

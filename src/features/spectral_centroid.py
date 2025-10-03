@@ -1,24 +1,27 @@
+# src/features/spectral_centroid.py
 import numpy as np
 import librosa
 
-def calculate_spectral_centroid(audio_signal, sample_rate=16000, frame_length=2048, hop_length=512):
+def compute(signal: np.ndarray, sr: int, frame_length: int = 2048, hop_length: int = 512) -> dict:
     """
-    Berechnet den Spectral Centroid eines Audiosignals.
-
-    Quelle:
-        Tzanetakis, G., & Cook, P. (2002). Musical genre classification of audio signals.
-        IEEE Transactions on Speech and Audio Processing.
-
-    Args:
-        audio_signal (np.array): Das normalisierte Audio-Signal (1D-Array).
-        sample_rate (int): Sampling-Rate des Signals (Standard: 16000 Hz).
-        frame_length (int): Länge eines Frames in Samples (Standard: 2048).
-        hop_length (int): Schrittweite zwischen Frames in Samples (Standard: 512).
-
-    Returns:
-        float: Durchschnittlicher Spectral Centroid in Hz.
-    """
-    spectral_centroid = librosa.feature.spectral_centroid(y=audio_signal, sr=sample_rate, n_fft=frame_length, hop_length=hop_length)
+    Berechnet den Spectral Centroid (Schwerpunkt des Spektrums) eines Audiosignals.
     
-    # Mittelwert über alle Frames berechnen
-    return np.mean(spectral_centroid)
+    Args:
+        signal (np.ndarray): 1D-Audiosignal (float, mono).
+        sr (int): Samplingrate in Hz.
+        frame_length (int): FFT-Länge (Default: 2048).
+        hop_length (int): Schrittweite zwischen Frames in Samples (Default: 512).
+    
+    Returns:
+        dict: {"centroid_mean": float, "centroid_std": float}
+    """
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {"centroid_mean": np.nan, "centroid_std": np.nan}
+
+    # Frame-basierter Spectral Centroid (Shape: (1, n_frames))
+    centroid = librosa.feature.spectral_centroid(y=signal, sr=sr, n_fft=frame_length, hop_length=hop_length)[0]
+
+    return {
+        "centroid_mean": float(np.mean(centroid)),
+        "centroid_std":  float(np.std(centroid))
+    }

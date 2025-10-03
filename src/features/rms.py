@@ -1,17 +1,19 @@
+# src/features/rms.py
 import numpy as np
 
-def calculate_rms(audio_signal):
+def compute(signal: np.ndarray, sr: int) -> dict:
     """
-    Berechnet den Root Mean Square (RMS) eines Audiosignals.
-
-    Quelle:
-        Andreas Friesecke, Die Audio-Enzyklopädie, K. G. Saur, 2007, S. 208,
-        ISBN: 978-3-598-11774-9
+    Berechnet den RMS-Wert (Root Mean Square) eines Audiosignals.
     
     Args:
-        audio_signal (np.array): Das Audio-Signal (1D-Array).
-
+        signal (np.ndarray): 1D-Audiosignal (float, mono).
+        sr (int): Samplingrate in Hz.
+    
     Returns:
-        float: Der RMS-Wert.
+        dict: {"rms_mean": float, "rms_std": float}
     """
-    return np.sqrt(np.mean(audio_signal**2))
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {"rms_mean": np.nan, "rms_std": np.nan}
+    
+    rms_val = np.sqrt(np.mean(np.square(signal), dtype=np.float64))
+    return {"rms_mean": float(rms_val), "rms_std": 0.0}

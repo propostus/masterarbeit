@@ -1,32 +1,32 @@
+# src/features/loudness_range.py
 import numpy as np
 
-def calculate_loudness_range(audio_signal, lower_percentile=10, upper_percentile=95):
+def compute(signal: np.ndarray, sr: int,
+            lower_percentile: int = 10,
+            upper_percentile: int = 95) -> dict:
     """
-    Berechnet die Loudness Range (LRA) eines Audiosignals basierend auf EBU TECH 3342.
-
-    Quelle:
-        EBU TECH 3342: "LOUDNESS RANGE: A MEASURE TO SUPPLEMENT EBU R 128 LOUDNESS NORMALIZATION"
-        Geneva, November 2023.
-
-    Args:
-        audio_signal (np.array): Das normalisierte Audio-Signal (1D-Array).
-        lower_percentile (int): Unteres Perzentil (Standard: 10).
-        upper_percentile (int): Oberes Perzentil (Standard: 95).
-
-    Returns:
-        float: Loudness Range (LRA) in Dezibel.
-    """
-    # Absolutwerte des Signals für die Perzentilberechnung
-    abs_signal = np.abs(audio_signal)
+    Berechnet die Loudness Range (LRA) eines Audiosignals als Perzentil-Bereich.
+    (vereinfachte Version nach EBU TECH 3342)
     
-    # Perzentile berechnen
+    Args:
+        signal (np.ndarray): 1D-Audiosignal (float, mono).
+        sr (int): Samplingrate in Hz (hier nicht genutzt, nur für API-Konsistenz).
+        lower_percentile (int): Unteres Perzentil (Default: 10).
+        upper_percentile (int): Oberes Perzentil (Default: 95).
+    
+    Returns:
+        dict: {"lra_db": float}
+    """
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {"lra_db": np.nan}
+
+    abs_signal = np.abs(signal)
+
     p_upper = np.percentile(abs_signal, upper_percentile)
     p_lower = np.percentile(abs_signal, lower_percentile)
-    
-    # LRA berechnen
-    if p_lower > 0:  # Verhindert Division durch Null
-        lra = 20 * np.log10(p_upper / p_lower)
-    else:
-        lra = 0.0  # Falls p_lower = 0, setzen wir die LRA auf 0 dB
-    
-    return lra
+
+    if p_lower <= 1e-12:  # praktisch Stille
+        return {"lra_db": np.nan}
+
+    lra = 20 * np.log10(p_upper / p_lower)
+    return {"lra_db": float(lra)}

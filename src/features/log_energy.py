@@ -1,22 +1,27 @@
+# src/features/log_energy.py
 import numpy as np
 
-def calculate_log_energy(audio_signal):
+def compute(signal: np.ndarray, sr: int) -> dict:
     """
     Berechnet die logarithmische Energie eines Audiosignals.
-
-    Quelle:
-        ETSI ES 201 108 V1.1.2 (2000-04), Speech Processing, Transmission and Quality aspects (STQ);
-        Distributed speech recognition; Front-end feature extraction algorithm; Compression algorithms.
+    (vereinfachte Version nach ETSI ES 201 108)
 
     Args:
-        audio_signal (np.array): Das Audio-Signal (1D-Array).
+        signal (np.ndarray): 1D-Audiosignal (float, mono).
+        sr (int): Samplingrate (hier nicht genutzt, nur für API-Konsistenz).
 
     Returns:
-        float: Die logarithmische Energie.
+        dict: {"log_energy_db": float}
     """
-    # Quadrieren der Amplituden und Summieren
-    energy = np.sum(audio_signal**2)
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {"log_energy_db": np.nan}
 
-    # Logarithmus berechnen mit Floor-Wert aus dem ETSI-Standard
-    log_energy = np.log(energy + 2e-22)  # Offset: 2e-22, um log(0) zu vermeiden
-    return log_energy
+    # Energie = Summe der Quadrate
+    energy = np.sum(signal**2)
+
+    if energy <= 0:
+        return {"log_energy_db": np.nan}
+
+    # Logarithmische Energie in dB
+    log_energy_db = 10 * np.log10(energy + 2e-22)  # ETSI-Offset für Stabilität
+    return {"log_energy_db": float(log_energy_db)}

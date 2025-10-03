@@ -1,24 +1,29 @@
+# src/features/spectral_bandwidth.py
 import numpy as np
 import librosa
 
-def calculate_spectral_bandwidth(audio_signal, sample_rate=16000, frame_length=2048, hop_length=512):
+def compute(signal: np.ndarray, sr: int, frame_length: int = 2048, hop_length: int = 512) -> dict:
     """
-    Berechnet die Spectral Bandwidth eines Audiosignals.
-
-    Quelle:
-        Peeters, G. (2004). A large set of audio features for sound description (similarity and classification).
-        Technical Report, IRCAM.
-
+    Berechnet die Spectral Bandwidth (Bandbreite des Spektrums) eines Audiosignals.
+    
     Args:
-        audio_signal (np.array): Das normalisierte Audio-Signal (1D-Array).
-        sample_rate (int): Sampling-Rate des Signals (Standard: 16000 Hz).
-        frame_length (int): Länge eines Frames in Samples (Standard: 2048).
-        hop_length (int): Schrittweite zwischen Frames in Samples (Standard: 512).
-
+        signal (np.ndarray): 1D-Audiosignal (float, mono).
+        sr (int): Samplingrate in Hz.
+        frame_length (int): FFT-Länge (Default: 2048).
+        hop_length (int): Schrittweite zwischen Frames in Samples (Default: 512).
+    
     Returns:
-        float: Durchschnittliche Spectral Bandwidth in Hz.
+        dict: {"bandwidth_mean": float, "bandwidth_std": float}
     """
-    spectral_bw = librosa.feature.spectral_bandwidth(y=audio_signal, sr=sample_rate, n_fft=frame_length, hop_length=hop_length)
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {"bandwidth_mean": np.nan, "bandwidth_std": np.nan}
 
-    # Mittelwert über alle Frames berechnen
-    return np.mean(spectral_bw)
+    # Frame-basierte Spectral Bandwidth (Shape: (1, n_frames))
+    bandwidth = librosa.feature.spectral_bandwidth(
+        y=signal, sr=sr, n_fft=frame_length, hop_length=hop_length
+    )[0]
+
+    return {
+        "bandwidth_mean": float(np.mean(bandwidth)),
+        "bandwidth_std":  float(np.std(bandwidth))
+    }

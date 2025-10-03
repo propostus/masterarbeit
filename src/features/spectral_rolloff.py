@@ -1,23 +1,26 @@
-import librosa
+# src/features/spectral_rolloff.py
 import numpy as np
+import librosa
 
-def calculate_spectral_rolloff(audio_signal, sample_rate=16000, roll_percent=0.85):
+def compute(signal: np.ndarray, sr: int, roll_percent: float = 0.85) -> dict:
     """
     Berechnet den Spectral Rolloff eines Audiosignals.
-
-    Quelle:
-        - Librosa: spectral_rolloff
-        - https://librosa.org/doc/main/generated/librosa.feature.spectral_rolloff.html
-
+    
     Args:
-        audio_signal (np.array): Vorverarbeitetes Audio-Signal.
-        sample_rate (int): Sampling-Rate des Audiosignals.
-        roll_percent (float): Anteil der Energie, unterhalb dessen die Grenzfrequenz berechnet wird (Standard: 85%).
-
+        signal (np.ndarray): 1D-Audiosignal (float, mono).
+        sr (int): Samplingrate in Hz.
+        roll_percent (float): Anteil der Energie, unterhalb dessen die Grenzfrequenz berechnet wird (Default: 0.85).
+    
     Returns:
-        float: Durchschnittlicher Spectral Rolloff-Wert über alle Frames (Hz).
+        dict: {"rolloff_mean": float, "rolloff_std": float}
     """
-    spectral_rolloff = librosa.feature.spectral_rolloff(y=audio_signal, sr=sample_rate, roll_percent=roll_percent)
-
-    # Mittelwert über alle Frames berechnen
-    return np.mean(spectral_rolloff)
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {"rolloff_mean": np.nan, "rolloff_std": np.nan}
+    
+    # Frame-basiert: Rolloff pro Frame in Hz
+    rolloff = librosa.feature.spectral_rolloff(y=signal, sr=sr, roll_percent=roll_percent)[0]
+    
+    return {
+        "rolloff_mean": float(np.mean(rolloff)),
+        "rolloff_std":  float(np.std(rolloff))
+    }

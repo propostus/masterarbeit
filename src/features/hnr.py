@@ -1,67 +1,55 @@
+# src/features/hnr.py
 import numpy as np
 import librosa
-from scipy.signal import find_peaks
 
-def calculate_hnr(audio_signal, sample_rate=16000, frame_length=2048, hop_length=512):
+def compute(signal: np.ndarray, sr: int, frame_length: int = 2048, hop_length: int = 512) -> dict:
     """
-    Berechnet das Harmonics-to-Noise Ratio (HNR) eines Audiosignals nach der Methode aus Praat (Hoole, Sprachproduktion 1).
-
-    Quelle:
-        Hoole, P. (Seminar Sprachproduktion 1, Akustische Analyse der Stimmqualität).
-        Klatt & Klatt (1990), "Analysis, synthesis, and perception of voice quality variations".
+    Berechnet das Harmonics-to-Noise Ratio (HNR) basierend auf Autokorrelation (Praat-ähnlich).
+    Quelle: Boersma (1993), "Accurate short-term analysis of the fundamental frequency..."
 
     Args:
-        audio_signal (np.array): Das normalisierte Audio-Signal (1D-Array).
-        sample_rate (int): Sampling-Rate des Signals (Standard: 16000 Hz).
-        frame_length (int): Länge eines Frames in Samples (Standard: 2048 für bessere Frequenzauflösung).
-        hop_length (int): Schrittweite zwischen Frames in Samples (Standard: 512).
+        signal (np.ndarray): 1D-Audiosignal (float, mono).
+        sr (int): Samplingrate in Hz.
+        frame_length (int): Framegröße in Samples (Default: 2048).
+        hop_length (int): Schrittweite in Samples (Default: 512).
 
     Returns:
-        float: Durchschnittlicher HNR-Wert des Signals in Dezibel (dB).
+        dict: {"hnr_mean": float, "hnr_std": float}
     """
-    # Anzahl der Frames
-    num_frames = (len(audio_signal) - frame_length) // hop_length + 1
+    if signal.size == 0 or not np.isfinite(signal).any():
+        return {"hnr_mean": np.nan, "hnr_std": np.nan}
+
     hnr_values = []
 
-    for i in range(num_frames):
-        start = i * hop_length
-        end = start + frame_length
-        frame = audio_signal[start:end]
+    # Framing
+    for i in range(0, len(signal) - frame_length, hop_length):
+        frame = signal[i:i + frame_length]
+        if np.all(frame == 0):
+            continue
 
-        # FFT berechnen
-        fft_spectrum = np.abs(np.fft.rfft(frame))
-        fft_frequencies = np.fft.rfftfreq(len(frame), d=1/sample_rate)
+        # Autokorrelation
+        acf = np.correlate(frame, frame, mode="full")
+        acf = acf[len(acf)//2:]  # nur positive Lags
 
-        # Finde den Grundton (f0) - stärkster Peak im unteren Frequenzbereich
-        peaks, properties = find_peaks(fft_spectrum, height=np.max(fft_spectrum) * 0.1)
-        if len(peaks) < 2:
-            hnr_values.append(0.0)  # Falls keine harmonischen Peaks gefunden werden
-            continue  
+        if np.max(acf) <= 0:
+            continue
 
-        # Berechnung von H1-H2
-        h1_index = peaks[0]  # Erste Harmonische (Grundton)
-        h2_index = peaks[1]  # Zweite Harmonische
-        h1_amplitude = properties["peak_heights"][0]
-        h2_amplitude = properties["peak_heights"][1]
-        h1_h2 = 10 * np.log10(h1_amplitude / h2_amplitude)  # Spektrale Neigung
+        # Normalisieren
+        acf /= np.max(acf)
 
-        # Gesamtenergie des Spektrums
-        total_energy = np.sum(fft_spectrum ** 2)
+        # Peak nach Lag=0 suchen (Grundperiode)
+        peak = np.max(acf[1:])  # höchster Peak nach 0-Lag
+        if peak <= 1e-6:
+            continue
 
-        # Harmonische Energie (nur Frequenzen unter 4 kHz verwenden)
-        harmonic_energy = np.sum(fft_spectrum[fft_frequencies < 4000] ** 2)
-
-        # Rauschenergie = Gesamtenergie - harmonische Energie
-        noise_energy = total_energy - harmonic_energy
-
-        # Fehlerbehandlung
-        if noise_energy <= 0 or harmonic_energy <= 0:
-            hnr = 0.0
-        else:
-            hnr = 10 * np.log10(harmonic_energy / noise_energy)
-
+        # HNR: Verhältnis peak/(1-peak) (Boersma)
+        hnr = 10 * np.log10(peak / (1 - peak))
         hnr_values.append(hnr)
 
-    # Durchschnittlicher HNR-Wert über alle Frames
-    average_hnr = np.mean(hnr_values) if hnr_values else 0.0
-    return average_hnr
+    if not hnr_values:
+        return {"hnr_mean": np.nan, "hnr_std": np.nan}
+
+    return {
+        "hnr_mean": float(np.mean(hnr_values)),
+        "hnr_std": float(np.std(hnr_values))
+    }
