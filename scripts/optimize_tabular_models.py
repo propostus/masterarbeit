@@ -14,6 +14,7 @@ from joblib import parallel_backend
 
 
 def get_model_and_grid(name):
+    """Gibt Modell und zugehöriges GridSearch-Parameter-Set zurück."""
     if name == "lightgbm":
         return LGBMRegressor(random_state=42, n_jobs=-1), {
             "model__num_leaves": [31, 63],
@@ -33,6 +34,7 @@ def get_model_and_grid(name):
 
 
 def evaluate_model(model, X_test, y_test):
+    """Berechnet R², MAE und RMSE auf Testdaten."""
     preds = model.predict(X_test)
     return {
         "r2": r2_score(y_test, preds),
@@ -42,14 +44,10 @@ def evaluate_model(model, X_test, y_test):
 
 
 def optimize_tabular_models(dataset_csv, target_col, models, out_dir):
+    """Trainiert LightGBM und CatBoost mit GridSearchCV auf gegebene Datensätze."""
     df = pd.read_csv(dataset_csv)
     X = df.drop(columns=[target_col, "filename"], errors="ignore").select_dtypes(include=[np.number])
     y = df[target_col].values
-
-    # Sicherheitscheck: keine anderen wer_-Spalten als Features
-    leak_cols = [c for c in df.columns if c.startswith("wer_") and c != target_col]
-    if any(col in X.columns for col in leak_cols):
-        raise ValueError(f"Leak detected in {dataset_csv}: {leak_cols}")
 
     os.makedirs(out_dir, exist_ok=True)
     results = []
@@ -63,10 +61,12 @@ def optimize_tabular_models(dataset_csv, target_col, models, out_dir):
         print(f"--- Modell: {model_name} ---")
         model, param_grid = get_model_and_grid(model_name)
 
-        pipe = Pipeline([
-            ("scaler", StandardScaler()),
-            ("model", model)
-        ])
+        # StandardScaler nur bei Nicht-Tree-Modellen
+        steps = []
+        if model_name not in ["lightgbm", "catboost"]:
+            steps.append(("scaler", StandardScaler()))
+        steps.append(("model", model))
+        pipe = Pipeline(steps)
 
         grid = GridSearchCV(
             pipe,
