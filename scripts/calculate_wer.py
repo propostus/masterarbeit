@@ -35,11 +35,23 @@ def transcribe_and_calculate_wer(
     """Transkribiert Audiodateien mit Whisper und berechnet WER."""
     model = whisper.load_model(model_name)
 
-    # TSV-Datei laden
-    try:
-        df = pd.read_csv(tsv_path, sep="\t", usecols=["path", "sentence"])
-    except ValueError:
-        raise RuntimeError("Die TSV-Datei muss Spalten 'path' und 'sentence' enthalten.")
+    # TSV-Datei laden – flexibel bzgl. Spaltennamen
+    df = pd.read_csv(tsv_path, sep="\t")
+
+    # Prüfen, welche Spalten verfügbar sind
+    if "path" in df.columns:
+        path_col = "path"
+    elif "file" in df.columns:
+        path_col = "file"
+    else:
+        raise RuntimeError("TSV muss eine Spalte 'path' oder 'file' enthalten.")
+
+    if "sentence" in df.columns:
+        text_col = "sentence"
+    elif "text" in df.columns:
+        text_col = "text"
+    else:
+        raise RuntimeError("TSV muss eine Spalte 'sentence' oder 'text' enthalten.")
 
     # Optional: nur bestimmte Dateien verarbeiten
     restrict_set = None
@@ -52,16 +64,24 @@ def transcribe_and_calculate_wer(
     tried = 0
 
     for _, row in df.iterrows():
-        filename_mp3 = row["path"]
-        reference_raw = str(row["sentence"]).strip()
+        raw_path = row[path_col]
+        reference_raw = str(row[text_col]).strip()
 
-        # MP3 zu WAV umwandeln (da noisy-Dateien .wav heißen)
-        filename = os.path.splitext(filename_mp3)[0] + ".wav"
-        file_path = os.path.join(audio_dir, filename)
+        # Audio-Pfad: .mp3 oder .wav automatisch erkennen
+        base = os.path.splitext(raw_path)[0]
+        candidate_mp3 = os.path.join(audio_dir, base + ".mp3")
+        candidate_wav = os.path.join(audio_dir, base + ".wav")
 
+        if os.path.exists(candidate_mp3):
+            file_path = candidate_mp3
+        elif os.path.exists(candidate_wav):
+            file_path = candidate_wav
+        else:
+            tried += 1
+            continue  # Datei nicht vorhanden
+
+        filename = os.path.basename(file_path)
         tried += 1
-        if not os.path.exists(file_path):
-            continue  # Datei nicht gefunden, überspringen
 
         # Optional: nur bestimmte Dateien verarbeiten
         if restrict_set is not None and normalize_name(filename) not in restrict_set:
@@ -96,7 +116,7 @@ def transcribe_and_calculate_wer(
     out_df = pd.DataFrame(results)
     out_df.to_csv(out_csv, index=False)
 
-    print(f"WER-Ergebnisse gespeichert unter: {out_csv}")
+    print(f"\nWER-Ergebnisse gespeichert unter: {out_csv}")
     print(f"Dateien geprüft: {tried}, erfolgreich transkribiert: {processed}")
 
 if __name__ == "__main__":
