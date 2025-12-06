@@ -1,0 +1,17 @@
+{
+  "dataset": "results/datasets/merged_sigmos_wavlm_cv23_balanced_multiwer.csv",
+  "extra_features_csv": "results/features_audio/handcrafted_audio_features_cv23_balanced.csv",
+  "out_dir": "results/model_exports_cv23_mlp_multioutput",
+  "device": "auto",
+  "epochs": 80,
+  "batch_size": 512,
+  "hidden_sizes": [
+    512,
+    256,
+    128
+  ],
+  "dropout": 0.2,
+  "lr": 0.001,
+  "weight_decay": 1e-05,
+  "early_stopping_patience": 10
+}

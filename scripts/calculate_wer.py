@@ -1,4 +1,13 @@
 # scripts/calculate_wer.py
+# --------------------------------------------
+# Berechnet die Word Error Rate (WER) für Audiodateien
+# unter Verwendung von OpenAI Whisper.
+# Erweiterte Version:
+#   - unterstützt "_aug" Dateinamen
+#   - robustes Matching für mp3/wav
+#   - optional: Filterung auf bestimmte Feature-CSVs
+# --------------------------------------------
+
 import os
 import argparse
 import pandas as pd
@@ -13,15 +22,18 @@ STANDARD_TRANSFORM = Compose([
     RemoveMultipleSpaces(),
 ])
 
+
 def normalize_text(s: str) -> str:
     """Normalisiert Transkripttexte (Kleinbuchstaben, keine Satzzeichen, etc.)."""
     return STANDARD_TRANSFORM(s if isinstance(s, str) else str(s))
+
 
 def normalize_name(s: str) -> str:
     """Normalisiert Dateinamen (nur Basename, lowercase)."""
     s = str(s).strip()
     s = os.path.basename(s)
     return s.lower()
+
 
 def transcribe_and_calculate_wer(
     audio_dir: str,
@@ -67,18 +79,26 @@ def transcribe_and_calculate_wer(
         raw_path = row[path_col]
         reference_raw = str(row[text_col]).strip()
 
-        # Audio-Pfad: .mp3 oder .wav automatisch erkennen
         base = os.path.splitext(raw_path)[0]
-        candidate_mp3 = os.path.join(audio_dir, base + ".mp3")
-        candidate_wav = os.path.join(audio_dir, base + ".wav")
+        base_name = os.path.basename(base)
 
-        if os.path.exists(candidate_mp3):
-            file_path = candidate_mp3
-        elif os.path.exists(candidate_wav):
-            file_path = candidate_wav
-        else:
+        # Kandidaten prüfen: Original + Augmentiert
+        candidates = [
+            os.path.join(audio_dir, base_name + ".wav"),
+            os.path.join(audio_dir, base_name + ".mp3"),
+            os.path.join(audio_dir, base_name + "_aug.wav"),
+            os.path.join(audio_dir, base_name + "_aug.mp3"),
+        ]
+
+        file_path = None
+        for cand in candidates:
+            if os.path.exists(cand):
+                file_path = cand
+                break
+
+        if file_path is None:
             tried += 1
-            continue  # Datei nicht vorhanden
+            continue
 
         filename = os.path.basename(file_path)
         tried += 1
@@ -119,6 +139,7 @@ def transcribe_and_calculate_wer(
     print(f"\nWER-Ergebnisse gespeichert unter: {out_csv}")
     print(f"Dateien geprüft: {tried}, erfolgreich transkribiert: {processed}")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Berechne WER mit Whisper (für clean oder noisy Audiodateien)")
     parser.add_argument("--audio_dir", required=True, help="Ordner mit Audiodateien (z. B. .../snr_20)")
@@ -129,6 +150,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_files", type=int, default=None, help="Maximale Anzahl Dateien (Debug/Test)")
     parser.add_argument("--restrict_to_features_csv", type=str, default=None,
                         help="Optional: Nur Dateien berücksichtigen, die in dieser Feature-CSV stehen (Spalte 'filename').")
+
     args = parser.parse_args()
 
     transcribe_and_calculate_wer(
