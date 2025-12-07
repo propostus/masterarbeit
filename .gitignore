@@ -42,3 +42,5 @@ audio_files/cv-corpus-21.0-2025-03-14/en/*.tsv
 
 # Ordner
 audio_files/noise/ESC-50/
+results/
+results/*
