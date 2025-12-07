@@ -94,16 +94,16 @@ python src/run_wer_estimation.py \
   --device auto \
   --out_csv results/test_classification.csv
 ```
-Output-Spalten in der CSV-Datei (0 = WER überhalb Schwellwert, 1 = WER unterhalb Schwellwert):
-wer_tiny_under_05_percent 
-wer_tiny_under_10_percent
-wer_tiny_under_20_percent
-wer_base_under_05_percent
-wer_base_under_10_percent
-wer_base_under_20_percent
-wer_small_under_05_percent
-wer_small_under_10_percent
-wer_small_under_20_percent
+--Output-Spalten in der CSV-Datei (0 = WER überhalb Schwellwert, 1 = WER unterhalb Schwellwert):
+-wer_tiny_max_05_percent 
+-wer_tiny_max_10_percent
+-wer_tiny_max_20_percent
+-wer_base_max_05_percent
+-wer_base_max_10_percent
+-wer_base_max_20_percent
+-wer_small_max_05_percent
+-wer_small_max_10_percent
+-wer_small_max_20_percent
 
 
 ## Hardware / Performance
@@ -114,16 +114,14 @@ wer_small_under_20_percent
   3. cpu
 
 
-## Lizenz & Verwendung
+## Kontakt
 
 Dieses Repository ist Teil der Masterarbeit von
 Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berlin
 
-
-## Kontakt
-
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
 
 
 
