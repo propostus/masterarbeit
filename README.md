@@ -2,12 +2,12 @@
 ## Ein Machine-Learning-Ansatz zur Bewertung der Datenqualität für automatische Spracherkennung
 ### Master Thesis – Lukas Probst, 2025
 
-Diese Arbeit untersucht die automatische Schätzung der Word Error Rate (WER) von Whisper ohne Referenztranskripte.
+Diese Arbeit untersucht die automatische Schätzung der Word Error Rate (WER) von Whisper ohne Referenztranskript.
 
 Basierend auf SigMOS- und WavLM-Features werden Machine-Learning-Modelle eingesetzt, um:
 
 - kontinuierliche WER-Schätzungen zu erzeugen (Regression)
-- binäre Qualitätsschwellen zu klassifizieren, z. B.:
+- binäre Qualitätsschwellen zu klassifizieren:
   - WER unter 5 %?
   - WER unter 10 %?
   - WER unter 20 %?
@@ -128,3 +128,4 @@ Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berl
 
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
