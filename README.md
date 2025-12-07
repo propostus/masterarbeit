@@ -16,10 +16,10 @@ Basierend auf SigMOS- und WavLM-Features werden Machine-Learning-Modelle eingese
 ## Repository-Struktur
 
 masterarbeit/
-├── src/                 # Anwendungscode (Features, Regression, Klassifikation)
-├── models/              # Trainierte Modelle (Regression, Klassifikation) und SigMOS
-├── requirements.txt     # Minimale Abhängigkeiten für die Anwendung
-└── test/                # Beispielordner für eigene Audiodateien
+├── src/              # Anwendungscode (Features, Regression, Klassifikation)
+├── models/           # Trainierte Modelle (Regression, Klassifikation) und SigMOS
+├── requirements.txt  # Minimale Abhängigkeiten für die Anwendung
+└── test/             # Beispielordner für eigene Audiodateien
 
 
 ## Voraussetzungen
@@ -128,4 +128,5 @@ Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berl
 
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
 
