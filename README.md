@@ -94,7 +94,7 @@ python src/run_wer_estimation.py \
   --device auto \
   --out_csv results/test_classification.csv
 ```
---Output-Spalten in der CSV-Datei (0 = WER überhalb Schwellwert, 1 = WER unterhalb Schwellwert):
+Output-Spalten in der CSV-Datei (0 = WER überhalb Schwellwert, 1 = WER unterhalb Schwellwert):
 - wer_tiny_max_05_percent 
 - wer_tiny_max_10_percent
 - wer_tiny_max_20_percent
@@ -107,11 +107,14 @@ python src/run_wer_estimation.py \
 
 
 ## Hardware / Performance
-
+```text```
 --device auto wählt automatisch:
   1. mps (Apple Silicon)
   2. cuda (NVIDIA)
   3. cpu
+
+## Meilensteine
+
 
 
 ## Kontakt
@@ -121,6 +124,7 @@ Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berl
 
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
 
 
 
