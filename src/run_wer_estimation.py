@@ -296,7 +296,7 @@ def predict_classification(df_features: pd.DataFrame, device: str = "auto") -> p
 
             y_hat = (probs >= prob_thr).astype(int)
 
-            col_name = f"wer_{asr}_under_{int(thr * 100)}_percent"
+            col_name = f"wer_{asr}_max_{int(thr * 100)}_percent"
             df_out[col_name] = y_hat
 
     return df_out
