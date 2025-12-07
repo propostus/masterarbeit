@@ -115,7 +115,8 @@ Output-Spalten in der CSV-Datei (0 = WER überhalb Schwellwert, 1 = WER unterhal
   3. cpu
 
 ## Meilensteine
-
+Der Projektverlauf lässt sich anhand der Commits in diesem Repository nachvollziehen:
+https://github.com/propostus/masterarbeit/commits 
 
 
 ## Kontakt
@@ -125,6 +126,7 @@ Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berl
 
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
 
 
 
