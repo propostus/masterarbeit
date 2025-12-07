@@ -79,7 +79,7 @@ def load_sigmos_model(device: torch.device) -> Tuple[SigMOSEstimator, SignalProc
     import warnings
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
-        torchaudio.set_audio_backend("sox_io")
+        #torchaudio.set_audio_backend("sox_io")
     model = SigMOSEstimator().to(device)
     model.eval()
     processor = SignalProcessor()
