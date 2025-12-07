@@ -107,8 +107,9 @@ Output-Spalten in der CSV-Datei (0 = WER überhalb Schwellwert, 1 = WER unterhal
 
 
 ## Hardware / Performance
-```text```
+```text
 --device auto wählt automatisch:
+```
   1. mps (Apple Silicon)
   2. cuda (NVIDIA)
   3. cpu
@@ -124,6 +125,7 @@ Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berl
 
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
 
 
 
