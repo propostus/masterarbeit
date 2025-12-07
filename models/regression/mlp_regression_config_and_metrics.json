@@ -1,0 +1,23 @@
+{
+  "best_config": {
+    "config_id": 13,
+    "total_configs": 16,
+    "hidden_sizes": [
+      512,
+      256,
+      128
+    ],
+    "lr": 0.0005,
+    "batch_size": 512,
+    "dropout": 0.2,
+    "weight_decay": 0.0
+  },
+  "best_val_r2_mean": 0.20048443250803358,
+  "test_r2_mean": 0.12405441573154712,
+  "test_metrics": {
+    "r2_tiny": 0.09844578120815994,
+    "r2_base": 0.10880831827119186,
+    "r2_small": 0.16490914771528953,
+    "r2_mean": 0.12405441573154712
+  }
+}

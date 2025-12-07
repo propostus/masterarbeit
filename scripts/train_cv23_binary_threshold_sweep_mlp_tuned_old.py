@@ -2,9 +2,7 @@
 import argparse
 import os
 from collections import Counter
-from pathlib import Path  # NEU
 
-import joblib  # NEU
 import numpy as np
 import pandas as pd
 import torch
@@ -175,7 +173,7 @@ def train_one_config(
 ):
     """
     Trainiert eine MLP-Konfiguration, wählt bestes Epoch basierend auf Val-PR-AUC,
-    tuned Threshold, und gibt zusätzlich das Modell + den Scaler zurück.
+    und tuned anschließend den Threshold (F1 bei min_precision).
     """
     torch.manual_seed(random_state)
     np.random.seed(random_state)
@@ -187,7 +185,6 @@ def train_one_config(
     y_train = split_info["y_train"]
     y_val = split_info["y_val"]
     y_test = split_info["y_test"]
-    scaler = split_info["scaler"]
 
     # Klassenverteilung für pos_weight
     cnt = Counter(y_train)
@@ -299,8 +296,7 @@ def train_one_config(
         "test_pr_auc": float(test_pr_auc),
     }
 
-    # WICHTIG: wir geben jetzt auch das trainierte Modell + den Scaler zurück
-    return result, model, scaler
+    return result
 
 
 # -------------------------------------------------------
@@ -420,9 +416,6 @@ def main():
 
     results = []
 
-    models_dir = Path("models") / "classification"
-    models_dir.mkdir(parents=True, exist_ok=True)
-
     for target in targets:
         wer = df[target].values.astype(np.float32)
         mean_wer = wer.mean()
@@ -444,8 +437,6 @@ def main():
             best_cfg = None
             best_val_f1 = -np.inf
             best_result = None
-            best_model_state = None
-            best_scaler = None
 
             for cfg_id, cfg in enumerate(grid, start=1):
                 print(
@@ -455,7 +446,7 @@ def main():
                     f"batch={cfg['batch_size']}, wd={cfg['weight_decay']}"
                 )
 
-                res, model, scaler = train_one_config(
+                res = train_one_config(
                     X=X,
                     y=y,
                     groups=groups,
@@ -482,14 +473,11 @@ def main():
                     best_val_f1 = res["val_f1"]
                     best_cfg = cfg
                     best_result = res
-                    best_model_state = model.state_dict()
-                    best_scaler = scaler
 
             print("\nBeste Konfiguration für "
                   f"{target}, thr={thr}: val_f1={best_val_f1:.3f}")
             print(best_cfg)
 
-            # Ergebnisse protokollieren (CSV)
             row = {
                 "model": "MLP_small_binary_tuned",
                 "target": target,
@@ -498,23 +486,6 @@ def main():
             row.update(best_cfg)
             row.update(best_result)
             results.append(row)
-
-            # --------------------------------------------
-            # BESTES MODELL + SCALER SPEICHERN
-            # --------------------------------------------
-            if best_model_state is not None and best_scaler is not None:
-                # Schwelle hübsch als z.B. 0.05 -> "005", 0.10 -> "010"
-                thr_tag = f"{thr:.2f}".replace("0.", "0")  # 0.05->"005", 0.10->"010", 0.20->"020"
-                base_name = f"mlp_binary_{target}_thr{thr_tag}"
-
-                model_path = models_dir / f"{base_name}.pt"
-                scaler_path = models_dir / f"{base_name}_scaler.pkl"
-
-                print(f"Speichere bestes Modell unter: {model_path}")
-                torch.save(best_model_state, model_path)
-
-                print(f"Speichere zugehörigen Scaler unter: {scaler_path}")
-                joblib.dump(best_scaler, scaler_path)
 
     out_dir = os.path.dirname(args.out_csv)
     if out_dir:

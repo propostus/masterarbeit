@@ -1,17 +1,16 @@
-# scripts/train_cv23_binary_threshold_sweep_mlp_tuned.py
+# scripts/train_cv23_binary_fixed_configs.py
 import argparse
 import os
 from collections import Counter
-from pathlib import Path  # NEU
+from pathlib import Path
 
-import joblib  # NEU
+import joblib
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.metrics import (
-    precision_recall_curve,
     roc_auc_score,
     average_precision_score,
     precision_score,
@@ -21,7 +20,77 @@ from sklearn.metrics import (
 )
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GroupShuffleSplit
-from tqdm import tqdm
+
+
+# -------------------------------------------------------
+# Beste Hyperparameter-Kombinationen pro (Ziel, WER-Schwelle)
+# (aus deiner Tabelle übernommen)
+# -------------------------------------------------------
+BEST_CONFIGS = {
+    ("wer_tiny", 0.05): {
+        "hidden_sizes": [512, 256],
+        "dropout": 0.3,
+        "lr": 1e-3,
+        "batch_size": 256,
+        "weight_decay": 1e-4,
+    },
+    ("wer_tiny", 0.10): {
+        "hidden_sizes": [512, 256],
+        "dropout": 0.3,
+        "lr": 1e-3,
+        "batch_size": 512,
+        "weight_decay": 1e-4,
+    },
+    ("wer_tiny", 0.20): {
+        "hidden_sizes": [512, 256],
+        "dropout": 0.3,
+        "lr": 1e-3,
+        "batch_size": 256,
+        "weight_decay": 1e-4,
+    },
+    ("wer_base", 0.05): {
+        "hidden_sizes": [512, 256],
+        "dropout": 0.3,
+        "lr": 1e-3,
+        "batch_size": 512,
+        "weight_decay": 1e-4,
+    },
+    ("wer_base", 0.10): {
+        "hidden_sizes": [512, 256],
+        "dropout": 0.3,
+        "lr": 5e-4,  # 0.0005
+        "batch_size": 256,
+        "weight_decay": 1e-4,
+    },
+    ("wer_base", 0.20): {
+        "hidden_sizes": [512, 256, 128],
+        "dropout": 0.3,
+        "lr": 1e-3,
+        "batch_size": 512,
+        "weight_decay": 1e-4,
+    },
+    ("wer_small", 0.05): {
+        "hidden_sizes": [512, 256],
+        "dropout": 0.3,
+        "lr": 1e-3,
+        "batch_size": 512,
+        "weight_decay": 1e-4,
+    },
+    ("wer_small", 0.10): {
+        "hidden_sizes": [512, 256],
+        "dropout": 0.2,
+        "lr": 1e-3,
+        "batch_size": 256,
+        "weight_decay": 1e-4,
+    },
+    ("wer_small", 0.20): {
+        "hidden_sizes": [512, 256],
+        "dropout": 0.3,
+        "lr": 5e-4,
+        "batch_size": 256,
+        "weight_decay": 1e-4,
+    },
+}
 
 
 # -------------------------------------------------------
@@ -250,7 +319,6 @@ def train_one_config(
 
     # Fallback, falls nichts die min_precision erfüllt hat
     if best_thr_info["f1"] == 0.0:
-        # nehme 0.5 als Default
         thr = 0.5
         y_pred_val = (val_probs >= thr).astype(int)
         best_thr_info.update(
@@ -299,7 +367,6 @@ def train_one_config(
         "test_pr_auc": float(test_pr_auc),
     }
 
-    # WICHTIG: wir geben jetzt auch das trainierte Modell + den Scaler zurück
     return result, model, scaler
 
 
@@ -308,7 +375,7 @@ def train_one_config(
 # -------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(
-        description="MLP-Binary-Klassifikation für verschiedene WER-Schwellen (mit Hyperparameter-Tuning)."
+        description="MLP-Binary-Klassifikation für feste WER-Schwellen (mit festen Hyperparametern)."
     )
     parser.add_argument(
         "--dataset",
@@ -341,12 +408,6 @@ def main():
         help="Early-Stopping-Patience",
     )
     parser.add_argument(
-        "--batch_size",
-        type=int,
-        default=512,
-        help="Batchgröße (wird durch Grid ggf. überschrieben)",
-    )
-    parser.add_argument(
         "--random_state",
         type=int,
         default=42,
@@ -360,6 +421,7 @@ def main():
     )
     args = parser.parse_args()
 
+    # Device wählen
     if args.device == "auto":
         if torch.backends.mps.is_available():
             device = torch.device("mps")
@@ -376,7 +438,7 @@ def main():
     df = pd.read_csv(args.dataset)
     print(f"Shape: {df.shape}")
 
-    # Feature-Spalten: alles numerisch außer filename/client_id/age/gender/sentence
+    # Feature-Spalten: alles numerisch außer filename/client_id/age/gender/sentence + WER-Spalten
     non_feature_cols = {
         "filename",
         "client_id",
@@ -393,31 +455,6 @@ def main():
 
     targets = ["wer_tiny", "wer_base", "wer_small"]
 
-    # Hyperparameter-Grid
-    grid = []
-    hidden_options = [[512, 256], [512, 256, 128]]
-    dropout_options = [0.2, 0.3]
-    lr_options = [1e-3, 5e-4]
-    batch_options = [256, 512]
-    weight_decay_options = [0.0, 1e-4]
-
-    for hs in hidden_options:
-        for dr in dropout_options:
-            for lr in lr_options:
-                for bs in batch_options:
-                    for wd in weight_decay_options:
-                        grid.append(
-                            {
-                                "hidden_sizes": hs,
-                                "dropout": dr,
-                                "lr": lr,
-                                "batch_size": bs,
-                                "weight_decay": wd,
-                            }
-                        )
-
-    print(f"Hyperparameter-Kombinationen: {len(grid)}")
-
     results = []
 
     models_dir = Path("models") / "classification"
@@ -433,6 +470,7 @@ def main():
         print("=" * 70)
 
         for thr in args.thresholds:
+            thr = float(thr)
             print("\n" + "-" * 70)
             print(f"Schwelle: {target} <= {thr:.2f} als Klasse 1")
             print("-" * 70)
@@ -441,80 +479,63 @@ def main():
             cnt = Counter(y)
             print(f"Label-Verteilung (gesamt) für {target}, thr={thr}: {cnt}")
 
-            best_cfg = None
-            best_val_f1 = -np.inf
-            best_result = None
-            best_model_state = None
-            best_scaler = None
+            key = (target, thr)
+            if key not in BEST_CONFIGS:
+                print(f"Keine Best-Konfiguration für {key} gefunden – überspringe.")
+                continue
 
-            for cfg_id, cfg in enumerate(grid, start=1):
-                print(
-                    f"\nConfig {cfg_id}/{len(grid)}: "
-                    f"hidden={cfg['hidden_sizes']}, "
-                    f"dropout={cfg['dropout']}, lr={cfg['lr']}, "
-                    f"batch={cfg['batch_size']}, wd={cfg['weight_decay']}"
-                )
+            cfg = BEST_CONFIGS[key]
+            print(
+                f"Verwende vordefinierte Konfiguration: "
+                f"hidden={cfg['hidden_sizes']}, dropout={cfg['dropout']}, "
+                f"lr={cfg['lr']}, batch={cfg['batch_size']}, wd={cfg['weight_decay']}"
+            )
 
-                res, model, scaler = train_one_config(
-                    X=X,
-                    y=y,
-                    groups=groups,
-                    input_dim=X.shape[1],
-                    hidden_sizes=cfg["hidden_sizes"],
-                    dropout=cfg["dropout"],
-                    lr=cfg["lr"],
-                    batch_size=cfg["batch_size"],
-                    weight_decay=cfg["weight_decay"],
-                    max_epochs=args.max_epochs,
-                    patience=args.patience,
-                    device=device,
-                    random_state=args.random_state,
-                )
+            res, model, scaler = train_one_config(
+                X=X,
+                y=y,
+                groups=groups,
+                input_dim=X.shape[1],
+                hidden_sizes=cfg["hidden_sizes"],
+                dropout=cfg["dropout"],
+                lr=cfg["lr"],
+                batch_size=cfg["batch_size"],
+                weight_decay=cfg["weight_decay"],
+                max_epochs=args.max_epochs,
+                patience=args.patience,
+                device=device,
+                random_state=args.random_state,
+            )
 
-                print(
-                    f"  -> val_f1={res['val_f1']:.3f}, "
-                    f"val_prec={res['val_precision']:.3f}, "
-                    f"val_rec={res['val_recall']:.3f}, "
-                    f"val_pr_auc={res['val_pr_auc']:.3f}"
-                )
+            print(
+                f"  -> val_f1={res['val_f1']:.3f}, "
+                f"val_prec={res['val_precision']:.3f}, "
+                f"val_rec={res['val_recall']:.3f}, "
+                f"val_pr_auc={res['val_pr_auc']:.3f}"
+            )
 
-                if res["val_f1"] > best_val_f1:
-                    best_val_f1 = res["val_f1"]
-                    best_cfg = cfg
-                    best_result = res
-                    best_model_state = model.state_dict()
-                    best_scaler = scaler
-
-            print("\nBeste Konfiguration für "
-                  f"{target}, thr={thr}: val_f1={best_val_f1:.3f}")
-            print(best_cfg)
-
-            # Ergebnisse protokollieren (CSV)
+            # Für CSV-Log:
             row = {
-                "model": "MLP_small_binary_tuned",
+                "model": "MLP_binary_fixed",
                 "target": target,
                 "wer_threshold": thr,
             }
-            row.update(best_cfg)
-            row.update(best_result)
+            row.update(cfg)
+            row.update(res)
             results.append(row)
 
-            # --------------------------------------------
-            # BESTES MODELL + SCALER SPEICHERN
-            # --------------------------------------------
-            if best_model_state is not None and best_scaler is not None:
-                # Schwelle hübsch als z.B. 0.05 -> "005", 0.10 -> "010"
-                thr_tag = f"{thr:.2f}".replace("0.", "0")  # 0.05->"005", 0.10->"010", 0.20->"020"
-                base_name = f"mlp_binary_{target}_thr{thr_tag}"
+            # Modell + Scaler speichern
+            thr_tag = f"{int(round(thr * 100)):03d}"  # 0.05->005, 0.10->010, 0.20->020
+            base_name = f"mlp_binary_{target}_thr{thr_tag}"
 
-                model_path = models_dir / f"{base_name}.pt"
-                scaler_path = models_dir / f"{base_name}_scaler.pkl"
+            model_path = models_dir / f"{base_name}.pt"
+            scaler_path = models_dir / f"{base_name}_scaler.pkl"
 
-                print(f"Speichere bestes Modell unter: {model_path}")
-                torch.save(best_model_state, model_path)
+            print(f"Speichere bestes Modell unter: {model_path}")
+            torch.save(model.state_dict(), model_path)
 
-                print(f"Speichere zugehörigen Scaler unter: {scaler_path}")
-                joblib.dump(best_scaler, scaler_path)
+            print(f"Speichere zugehörigen Scaler unter: {scaler_path}")
+            joblib.dump(scaler, scaler_path)
 
     out_dir = os.path.dirname(args.out_csv)
     if out_dir:
