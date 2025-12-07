@@ -44,3 +44,4 @@ audio_files/cv-corpus-21.0-2025-03-14/en/*.tsv
 audio_files/noise/ESC-50/
 results/
 results/*
+scripts/
