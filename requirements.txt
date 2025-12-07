@@ -1,15 +1,26 @@
-# Kern-ML & Audio
-torch>=2.1
-torchaudio>=2.1
+# Core numerics
+numpy==1.26.4
+pandas==2.1.4
+scipy==1.11.4
 
-# Numerik & Datenhandling
-numpy>=1.23
-pandas>=1.5
+# Deep Learning / Audio
+torch==2.8.0
+torchaudio==2.8.0
 
-# Feature-Extraktion & Modelle
-transformers>=4.40
-tqdm>=4.65
-joblib>=1.2
-scikit-learn>=1.3
-librosa>=0.10
-scipy>=1.10
+# Feature-Extraktion
+librosa
+soundfile
+soxr
+
+# WavLM (Hugging Face)
+transformers==4.57.0
+
+# SigMOS (ONNX)
+onnxruntime==1.23.1
+
+# ML-Tools
+scikit-learn==1.4.2
+joblib==1.3.2
+
+# Utilities
+tqdm
