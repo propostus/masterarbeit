@@ -118,6 +118,8 @@ Output-Spalten in der CSV-Datei (0 = WER überhalb Schwellwert, 1 = WER unterhal
 Der Projektverlauf lässt sich anhand der Commits in diesem Repository nachvollziehen:
 https://github.com/propostus/masterarbeit/commits 
 
+## KI-Hinweis
+Bei der Entwicklung dieses Repositories wurde punktuell ein generatives KI-Tool (ChatGPT Version 5.1) zur Anpassung, Fehlersuche und Optimierung einzelner Code-Abschnitte eingesetzt. Die Konzeption, Datenaufbereitung, Modellauswahl, Experimente, finale Implementierung und das Verfassen der schriftlichen Arbeit wurde eigenständig durchgeführt. Alle KI-generierten Vorschläge wurden kritisch geprüft und angepasst.
 
 ## Kontakt
 
@@ -126,6 +128,7 @@ Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berl
 
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
 
 
 
