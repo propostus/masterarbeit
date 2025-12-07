@@ -1,9 +1,0 @@
-{
-  "hidden_layers": 4,
-  "hidden_size": 512,
-  "dropout": 0.4882565635196229,
-  "lr": 0.0007079070271549676,
-  "weight_decay": 1.8627224297063873e-05,
-  "batch_size": 256,
-  "activation": "GELU"
-}
