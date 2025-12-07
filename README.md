@@ -33,33 +33,33 @@ masterarbeit/
 ## Installation
 
 ### 1. Repository klonen
-
+```text
 git clone https://github.com/propostus/masterarbeit.git
 cd masterarbeit
-
+```
 ### 2. Conda-Environment erstellen und aktivieren
-
+```text
 conda create -n wer-estimation python=3.11
 conda activate wer-estimation
-
+```
 ### 3. Abhängigkeiten installieren
-
+```text
 pip install -r requirements.txt
-
+```
 
 ## Vorbereitung
 
 ### Ergebnisordner anlegen
-
+```text
 mkdir results
-
+```
 ### Test-Audiodateien ablegen
-
+```text
 masterarbeit/
     test/
         beispiel_1.wav
         beispiel_2.mp3
-
+```
 
 ## Anwendung
 
@@ -75,13 +75,13 @@ Parameter:
 
 
 ## 1. Anwendungsbeispiel Regression – Kontinuierliche WER-Schätzung
-
+```text
 python src/run_wer_estimation.py \
   --audio_dir test \
   --mode regression \
   --device auto \
   --out_csv results/test_regression.csv
-
+```
 Output-Spalten:
 filename
 filepath
@@ -91,13 +91,13 @@ wer_small # geschätzte WER, wenn diese Datei mit Whiper small transkribiert wir
 
 
 ## 2. Anwendungsbeispiel Klassifikation – WER-Schwellen 
-
+```text
 python src/run_wer_estimation.py \
   --audio_dir test \
   --mode classification \
   --device auto \
   --out_csv results/test_classification.csv
-
+```
 Output-Spalten in der CSV-Datei (0 = WER überhalb Schwellwert, 1 = WER unterhalb Schwellwert):
 wer_tiny_under_05_percent 
 wer_tiny_under_10_percent
@@ -128,6 +128,7 @@ Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berl
 
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
 
 
 
