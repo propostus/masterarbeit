@@ -64,7 +64,7 @@ masterarbeit/
 ## Anwendung
 
 Das zentrale Skript ist:
-
+```text
 src/run_wer_estimation.py
 
 Parameter:
@@ -72,7 +72,7 @@ Parameter:
 --mode  (regression | classification)
 --device  (cpu | cuda | mps | auto)
 --out_csv
-
+```
 
 ## 1. Anwendungsbeispiel Regression – Kontinuierliche WER-Schätzung
 ```text
@@ -85,9 +85,9 @@ python src/run_wer_estimation.py \
 Output-Spalten:
 filename
 filepath
-wer_tiny # geschätzte WER, wenn diese Datei mit Whiper tiny transkribiert wird
-wer_base # geschätzte WER, wenn diese Datei mit Whiper base transkribiert wird
-wer_small # geschätzte WER, wenn diese Datei mit Whiper small transkribiert wird
+wer_tiny # geschätzte WER, wenn diese Datei mit Whiper tiny transkribiert wird\
+wer_base # geschätzte WER, wenn diese Datei mit Whiper base transkribiert wird\
+wer_small # geschätzte WER, wenn diese Datei mit Whiper small transkribiert wird\
 
 
 ## 2. Anwendungsbeispiel Klassifikation – WER-Schwellen 
@@ -128,6 +128,7 @@ Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berl
 
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
 
 
 
