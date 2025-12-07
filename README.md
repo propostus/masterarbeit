@@ -83,11 +83,7 @@ python src/run_wer_estimation.py \
   --out_csv results/test_regression.csv
 ```
 Output-Spalten:
-filename
-filepath
-wer_tiny # geschätzte WER, wenn diese Datei mit Whiper tiny transkribiert wird\
-wer_base # geschätzte WER, wenn diese Datei mit Whiper base transkribiert wird\
-wer_small # geschätzte WER, wenn diese Datei mit Whiper small transkribiert wird\
+filename, filepath, wer_tiny (Prognose), wer_base (Prognose), wer_small (Prognose)
 
 
 ## 2. Anwendungsbeispiel Klassifikation – WER-Schwellen 
@@ -128,6 +124,7 @@ Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berl
 
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
 
 
 
