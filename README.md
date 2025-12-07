@@ -8,9 +8,9 @@ Basierend auf SigMOS- und WavLM-Features werden Machine-Learning-Modelle eingese
 
 - kontinuierliche WER-Schätzungen zu erzeugen (Regression)
 - binäre Qualitätsschwellen zu klassifizieren:
-  - WER unter 5 %?
-  - WER unter 10 %?
-  - WER unter 20 %?
+  - WER höchstens 5 %
+  - WER höchstens 10 %
+  - WER höchstens 20 %
 
 
 ## Repository-Struktur
@@ -128,6 +128,7 @@ Lukas Probst (2025), Fachgebiet Audiokommunikation, Technische Universität Berl
 
 Fragen oder Feedback:
 l.probst@campus.tu-berlin.de
+
 
 
 
